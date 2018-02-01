@@ -57,6 +57,9 @@ void keyboard (unsigned char key, int x, int y) {
             glutPostRedisplay();
             break;
             
+        case 'r':
+            display();
+            break;
         case 27:
             exit(0);
             break;
