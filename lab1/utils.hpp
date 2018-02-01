@@ -13,6 +13,8 @@
 #include <cmath>
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 /* Include header files depending on platform */
 #ifdef _WIN32
