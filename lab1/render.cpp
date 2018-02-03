@@ -7,7 +7,6 @@
 //
 
 #include "render.hpp"
-#include <time.h>
 
 // Tracks the update loop
 class FrameManager{
@@ -23,7 +22,13 @@ void FrameManager::update(){
     last_time = (glutGet(GLUT_ELAPSED_TIME));
 }
 void FrameManager::print_fps(){
-    std::cout<<"FPS: "<<ONE_SECOND/((glutGet(GLUT_ELAPSED_TIME) - last_time))<<"\n";
+    int fps = ONE_SECOND/((glutGet(GLUT_ELAPSED_TIME) - last_time));
+    // Clear screen
+    for(int i=0; i<50; i++) std::cout<<"\n";
+    // Print FPS
+    std::cout<<"FPS: "<< fps << " ";
+    for(int i=0; i<fps; i++) std::cout<<"|";
+    std::cout<<"\n";
 }
 float FrameManager::delta_time(){
     float delta = ((glutGet(GLUT_ELAPSED_TIME) - last_time));
@@ -76,7 +81,7 @@ public:
         Vector4f color;
 public:
     void draw();
-    void drawRainbow();
+    void drawMultiColor(Vector4f, Vector4f, Vector4f);
     void set(Vector2f, Vector2f, Vector2f, GLenum, Vector4f);
 };
 void Triangle::set(Vector2f v1, Vector2f v2, Vector2f v3, GLenum drawMethod, Vector4f color = Vector4f(0,0,0,1)){
@@ -93,13 +98,13 @@ void Triangle::draw() {
         glVertex2f(v3.x, v3.y);
     glEnd();
 }
-void Triangle::drawRainbow(){
+void Triangle::drawMultiColor(Vector4f c1, Vector4f c2, Vector4f c3){
     start_drawing(drawMethod);
-    glColor4f(1, 0, 0, 1);
+    glColor4f(c1.w, c1.x, c1.y, c1.z);
     glVertex2f(v1.x, v1.y);
-    glColor4f(0, 1, 0, 1);
+    glColor4f(c2.w, c2.x, c2.y, c2.z);
     glVertex2f(v2.x, v2.y);
-    glColor4f(0, 0, 1, 1);
+    glColor4f(c3.w, c3.x, c3.y, c3.z);
     glVertex2f(v3.x, v3.y);
     glEnd();
 }
@@ -140,19 +145,24 @@ private:
     Vector2f velocity = Vector2f();
 public:
     void set_velocity(Vector2f velocity);
-    void traverse();
+    void traverse(float, float);
 };
 void Particle::set_velocity(Vector2f velocity){
     this->velocity = velocity;
 }
-void Particle::traverse(){
-    center = Vector2f(center.x + velocity.x, center.y + velocity.y);
+void Particle::traverse(float delta_time, float drag = 0){
+    float deltaX = velocity.x * delta_time;
+    float deltaY = velocity.y * delta_time;
+    center = Vector2f(center.x + deltaX, center.y + deltaY);
+    // Drag
+    float multiplier = 1 - drag * delta_time;
+    velocity = Vector2f(velocity.x * multiplier, velocity.y * multiplier);
 }
 
 ///////////////////////////////////////////////////////////
 // Begin psedu-class (render)
 
-#define NUM_PARTICLES 100
+#define NUM_PARTICLES 200
 #define PARTICLE_VICINITY 2
 #define PARTICLE_SPEED 1
 
@@ -163,19 +173,29 @@ FrameManager* frame_manager = new FrameManager();
 
 void init_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
+        const float ANGLE_PRECISION = 36000.0f;
+        const float VELOCITY_PRECISION = 100.0f;
+        const float ALPHA_PRECISION = 100.0f;
+        
+        const float PARTICLE_BOUNDS = 15;
+        const float MAX_VELOCITY = 10.0f;
+        const float ALPHA_MIN = 0.25f;
+        
         // Random position
-        float r1 = (rand() % 1000 - 500.0)/50;
-        float r2 = (rand() % 1000 - 500.0)/50;
+        float angle = (rand()%(int)ANGLE_PRECISION) / ANGLE_PRECISION * 2 * M_PI;
+        float r1 = rand()%(int)PARTICLE_BOUNDS * cos(angle);
+        float r2 = rand()%(int)PARTICLE_BOUNDS * sin(angle);
         // Random velocities
-        float r3 = (rand() % 100 - 50.0)/10000;
-        float r4 = (rand() % 100 - 50.0)/10000;
+        angle = (rand()%(int)ANGLE_PRECISION) / ANGLE_PRECISION * 2 * M_PI;
+        float r3 = rand()%(int)VELOCITY_PRECISION / VELOCITY_PRECISION * MAX_VELOCITY * cos(angle);
+        float r4 = rand()%(int)VELOCITY_PRECISION / VELOCITY_PRECISION * MAX_VELOCITY * sin(angle);
         
         // Random alpha
-        float r5 = (rand() % 100)/100.0 + 0.25f;
+        float r5 = (rand() % (int)ALPHA_PRECISION)/ALPHA_PRECISION + ALPHA_MIN;
         r5 = r5 > 1 ? 1 : r5;
         
         // Set states
-        particles[i].set(Vector2f(r1, r2), 0.1f, 0, 360, GL_POLYGON, Vector4f(1,1,1,r5));
+        particles[i].set(Vector2f(r1, r2), 0.1f * r5, 0, 360, GL_POLYGON, Vector4f(1,1,1,r5));
         particles[i].set_velocity(Vector2f(PARTICLE_SPEED * r3 * r5, PARTICLE_SPEED * r4));
     }
 }
@@ -184,7 +204,6 @@ void init_particles(){
 void startRender(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor3f(0,0,0);
     
     init_particles();
 }
@@ -201,43 +220,10 @@ void finish_render(){
     glutPostRedisplay();
 }
 
-//void test(){
-//    radius += frame_manager->delta_time();
-//
-//    Arc *arc = new Arc();
-//    arc->set(Vector2f(), radius, 0, 360, GL_POLYGON ,Vector4f(1,0,1,0.5f));
-//    arc->draw();
-//    delete arc;
-//
-//    int NUM_ARCS = 100;
-//    int DIST_APART = 10;
-//    Arc arcs[NUM_ARCS];
-//    for(int i=0; i<NUM_ARCS; i++){
-//        float radius = (float)i/DIST_APART;
-//        arcs[i].set(Vector2f(), radius, 0, 360, GL_LINE_STRIP, Vector4f(0, 0, 0, 1-(float)i/NUM_ARCS));
-//        arcs[i].draw();
-//    }
-//
-//    Triangle* tri = new Triangle();
-//    tri->set(Vector2f(-0.866, -0.5), Vector2f(0, 1), Vector2f(0.866, -0.5), GL_POLYGON);
-//    tri->drawRainbow();
-//    delete tri;
-//
-//    int NUM_TRIS = 2500;
-//    Triangle tris[NUM_TRIS];
-//    glColor4f(0, 0, 0, 1);
-//    for(int i=0; i<NUM_TRIS; i++){
-//        float r1 = (rand() % 1000 - 500.0)/50;
-//        float r2 = (rand() % 1000 - 500.0)/50;
-//        tris[i].set(Vector2f(-0.25+r1, -0.25+r2), Vector2f(0+r1, 0.25+r2), Vector2f(0.25+r1, -0.25+r2), GL_POLYGON);
-//        tris[i].draw();
-//    }
-//}
-
 void draw_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
         particles[i].draw();
-        particles[i].traverse();
+        particles[i].traverse(frame_manager->delta_time(), 5.0f);
     }
 }
 
@@ -272,23 +258,18 @@ void draw_links(){
 }
 
 void draw_background(){
-//    Triangle* tri = new Triangle();
-    const int SCALE = 30;
-//    tri->set(Vector2f(-0.866 * SCALE, -0.5 * SCALE),
-//             Vector2f(0, 1 * SCALE),
-//             Vector2f(0.866 * SCALE, -0.5 * SCALE),
-//             GL_POLYGON,
-//             Vector4f(0,0,0.15f,1));
-//    tri->draw();
-    glBegin(GL_POLYGON);
-        glColor3f(0, 0, 0.2f);
-        glVertex2f(-0.866 * SCALE, -0.5 * SCALE);
-        glColor3f(0, 0, 0.0f);
-        glVertex2f(0, 1 * SCALE);
-        glColor3f(0, 0, 0.2f);
-    glVertex2f(0.866 * SCALE, -0.5 * SCALE);
-    glEnd();
-//    delete tri;
+    Triangle* tri = new Triangle();
+    const int SCALE = 10;//30;
+    Vector2f center = Vector2f(0,-1);
+    tri->set(Vector2f(-0.866 * SCALE + center.x, -0.5 * SCALE + center.y),
+             Vector2f(0 + center.x, 1 * SCALE+ center.y),
+             Vector2f(0.866 * SCALE + center.x, -0.5 * SCALE+ center.y),
+             GL_POLYGON,
+             Vector4f());
+    tri->drawMultiColor(Vector4f(0.2f, 0, 0.2f, 1),
+                     Vector4f(0, 0, 0.0f, 1),
+                     Vector4f(0, 0, 0.2f, 1));
+    delete tri;
 }
 
 void draw_mountains(){
@@ -304,12 +285,15 @@ void draw_foreground(){
 }
 void draw_moon(){
     const float MOON_SIZE = 0.5f;
-    const Vector2f MOON_POSITION = Vector2f(0,5);
+    const Vector2f MOON_POSITION = Vector2f(0,0);
+    
+    // Main moon
     Arc *arc = new Arc();
     arc->set(MOON_POSITION, MOON_SIZE, 0, 360, GL_POLYGON ,Vector4f(1,1,1,1));
     arc->draw();
     delete arc;
     
+    // Moon lighting
     int NUM_ARCS = 10;
     float DIST_APART = 0.25f;
     Arc arcs[NUM_ARCS];
@@ -326,7 +310,7 @@ void main_render(){
     draw_links();
     draw_particles();
     draw_foreground();
-    draw_moon();
+//    draw_moon();
 }
 
 void render(){

@@ -58,8 +58,8 @@ void keyboard (unsigned char key, int x, int y) {
             break;
             
         case 'r':
+            init();
             display();
-//            render();
             break;
         case 27:
             exit(0);
