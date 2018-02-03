@@ -11,6 +11,7 @@
 
 #include "utils.hpp"
 #include "display.hpp"
+#include "render.hpp"
 
 void keyboard (unsigned char key, int x, int y);
 void printControls();
