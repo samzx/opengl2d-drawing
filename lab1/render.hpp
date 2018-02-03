@@ -12,6 +12,6 @@
 #include "utils.hpp"
 
 void render();
-void startRender();
+void start_render();
 
 #endif /* render_hpp */

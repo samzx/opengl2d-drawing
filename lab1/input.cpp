@@ -58,7 +58,7 @@ void keyboard (unsigned char key, int x, int y) {
             break;
             
         case 'r':
-            startRender();
+            start_render();
             break;
         case 27:
             exit(0);

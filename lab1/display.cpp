@@ -29,7 +29,7 @@ void reshape (int w, int h){
     glOrtho(-10, 10, -10, 10, -10, 10);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    startRender();
+    start_render();
 }
 
 void display(void){

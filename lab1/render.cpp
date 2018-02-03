@@ -14,16 +14,20 @@ private:
     int last_time = 0;
     int ONE_SECOND = 1000;
 public:
+    float delta_time = 0;
     FrameManager();
     void update();
     void print_fps();
-    float delta_time();
+    void update_delta_time();
 };
 FrameManager::FrameManager(){
     last_time = (glutGet(GLUT_ELAPSED_TIME));
 }
 void FrameManager::update(){
-    last_time = (glutGet(GLUT_ELAPSED_TIME));
+    float time = (glutGet(GLUT_ELAPSED_TIME));
+    float delta = (time - last_time);
+    delta_time = delta/ONE_SECOND;
+    last_time = time;
 }
 void FrameManager::print_fps(){
     int fps = ONE_SECOND/((glutGet(GLUT_ELAPSED_TIME) - last_time));
@@ -33,10 +37,6 @@ void FrameManager::print_fps(){
     std::cout<<"FPS: "<< fps << " ";
     for(int i=0; i<fps; i++) std::cout<<"|";
     std::cout<<"\n";
-}
-float FrameManager::delta_time(){
-    float delta = ((glutGet(GLUT_ELAPSED_TIME) - last_time));
-    return delta/ONE_SECOND;
 }
 
 // Stores two floating point numbers relating to x, y positions
@@ -159,7 +159,7 @@ void Particle::traverse(float delta_time, float drag = 0){
     float deltaY = velocity.y * delta_time;
     center = Vector2f(center.x + deltaX, center.y + deltaY);
     // Drag
-    float multiplier = 1 - drag * delta_time;
+    float multiplier = 1.0 - drag * delta_time;
     velocity = Vector2f(velocity.x * multiplier, velocity.y * multiplier);
 }
 
@@ -176,10 +176,10 @@ FrameManager* frame_manager;
 void init_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
         const float ANGLE_PRECISION = 36000.0f;
-        const float VELOCITY_PRECISION = 100.0f;
+        const float VELOCITY_PRECISION = 10000.0f;
         const float ALPHA_PRECISION = 100.0f;
         
-        const float PARTICLE_BOUNDS = 1; // 15 | 1 explosion
+        const float PARTICLE_BOUNDS = 1.0; // 15 | 1 explosion
         const float MAX_VELOCITY = 50.0f; // 10 | 50 explosion
         const float ALPHA_MIN = 0.25f;
         
@@ -203,7 +203,7 @@ void init_particles(){
 }
 
 // Initilisations before render loop
-void startRender(){
+void start_render(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -217,7 +217,7 @@ void startRender(){
 
 // Tidies up and updates states after one render loop
 void finish_render(){
-//    frame_manager->print_fps();
+    frame_manager->print_fps();
     frame_manager->update();
     
     // Re-render to start next frame
@@ -227,7 +227,7 @@ void finish_render(){
 void draw_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
         particles[i].draw();
-        particles[i].traverse(frame_manager->delta_time(), 5.0f);
+        particles[i].traverse(frame_manager->delta_time, 3.0f);
     }
 }
 
