@@ -18,7 +18,6 @@ float tx = 0.0, ty=0.0;
 void init(void){
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glShadeModel (GL_SMOOTH);
-    startRender();
 }
 
 void reshape (int w, int h){
@@ -30,6 +29,7 @@ void reshape (int w, int h){
     glOrtho(-10, 10, -10, 10, -10, 10);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    startRender();
 }
 
 void display(void){

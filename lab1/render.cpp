@@ -272,7 +272,7 @@ void draw_background(){
                         Vector4f(0.2f, 0, 0.2f, 1));
     
     //TEMP: use function
-    scale = 7.25;
+    scale = 7.1;
     tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
              Vector2f(0 + center.x, 1 * scale+ center.y),
              Vector2f(0.866 * scale + center.x, -0.5 * scale+ center.y),
