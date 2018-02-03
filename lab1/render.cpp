@@ -14,10 +14,14 @@ private:
     int last_time = 0;
     int ONE_SECOND = 1000;
 public:
+    FrameManager();
     void update();
     void print_fps();
     float delta_time();
 };
+FrameManager::FrameManager(){
+    last_time = (glutGet(GLUT_ELAPSED_TIME));
+}
 void FrameManager::update(){
     last_time = (glutGet(GLUT_ELAPSED_TIME));
 }
@@ -167,7 +171,7 @@ void Particle::traverse(float delta_time, float drag = 0){
 #define PARTICLE_SPEED 1
 
 Particle particles[NUM_PARTICLES];
-FrameManager* frame_manager = new FrameManager();
+FrameManager* frame_manager;
 
 void init_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
@@ -175,7 +179,7 @@ void init_particles(){
         const float VELOCITY_PRECISION = 100.0f;
         const float ALPHA_PRECISION = 100.0f;
         
-        const float PARTICLE_BOUNDS = 15; // 15 | 1 explosion
+        const float PARTICLE_BOUNDS = 1; // 15 | 1 explosion
         const float MAX_VELOCITY = 50.0f; // 10 | 50 explosion
         const float ALPHA_MIN = 0.25f;
         
@@ -207,14 +211,13 @@ void startRender(){
     glLoadIdentity();
     glTranslatef(0, -2, 0);
     
-    std::cout<<"YES";
-    
+    frame_manager = new FrameManager();
     init_particles();
 }
 
 // Tidies up and updates states after one render loop
 void finish_render(){
-    frame_manager->print_fps();
+//    frame_manager->print_fps();
     frame_manager->update();
     
     // Re-render to start next frame
@@ -271,16 +274,7 @@ void draw_background(){
                         Vector4f(0, 0, 0.2f, 1),
                         Vector4f(0.2f, 0, 0.2f, 1));
     
-    //TEMP: use function
-    scale = 7.1;
-    tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
-             Vector2f(0 + center.x, 1 * scale+ center.y),
-             Vector2f(0.866 * scale + center.x, -0.5 * scale+ center.y),
-             GL_POLYGON,
-             Vector4f());
-    tri->drawMultiColor(Vector4f(1, 1, 1, 1),
-                        Vector4f(1, 1, 1, 1),
-                        Vector4f(1, 1, 1, 1));
+
     // TEMP: use function
     scale = 7;
     tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
@@ -292,6 +286,17 @@ void draw_background(){
     tri->drawMultiColor(Vector4f(0.2f, 0, 0.2f, 1),
                         Vector4f(0, 0, 0.0f, 1),
                         Vector4f(0, 0, 0.2f, 1));
+    
+    //TEMP: use function
+    scale = 7;
+    tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
+             Vector2f(0 + center.x, 1 * scale+ center.y),
+             Vector2f(0.866 * scale + center.x, -0.5 * scale+ center.y),
+             GL_LINE_LOOP,
+             Vector4f());
+    tri->drawMultiColor(Vector4f(1, 1, 1, 1),
+                        Vector4f(1, 1, 1, 1),
+                        Vector4f(1, 1, 1, 1));
     delete tri;
 }
 
