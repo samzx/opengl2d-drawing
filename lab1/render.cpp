@@ -52,23 +52,31 @@ public:
 Vector4f::Vector4f(float a, float b, float c, float d) : w(a), x(b), y(c), z(d) {}
 Vector4f::Vector4f() : w(0), x(0), y(0), z(0) {}
 
-// Helper method for polygons
-void start_drawing(GLenum draw_method, Vector4f color = Vector4f(0,0,0,1)){
+class Shape {
+public:
+    GLenum drawMethod;
+    Vector4f color;
+public:
+    void start_drawing(GLenum, Vector4f);
+};
+void Shape::start_drawing(GLenum draw_method, Vector4f color = Vector4f(0,0,0,1)){
+    // Helper method for polygons
     glBegin(draw_method);
     glColor4f(color.w, color.x, color.y, color.z);
 }
 
 // Represents a Triangle with three verticies.
-class Triangle {
+class Triangle : Shape {
 public:
     Vector2f
         v1 = Vector2f(),
         v2 = Vector2f(),
         v3 = Vector2f();
-    GLenum drawMethod;
-    Vector4f color;
+        GLenum drawMethod;
+        Vector4f color;
 public:
     void draw();
+    void drawRainbow();
     void set(Vector2f, Vector2f, Vector2f, GLenum, Vector4f);
 };
 void Triangle::set(Vector2f v1, Vector2f v2, Vector2f v3, GLenum drawMethod, Vector4f color = Vector4f(0,0,0,1)){
@@ -85,9 +93,19 @@ void Triangle::draw() {
         glVertex2f(v3.x, v3.y);
     glEnd();
 }
+void Triangle::drawRainbow(){
+    start_drawing(drawMethod);
+    glColor4f(1, 0, 0, 1);
+    glVertex2f(v1.x, v1.y);
+    glColor4f(0, 1, 0, 1);
+    glVertex2f(v2.x, v2.y);
+    glColor4f(0, 0, 1, 1);
+    glVertex2f(v3.x, v3.y);
+    glEnd();
+}
 
 // Arc given center, radius and degrees it spans
-class Arc {
+class Arc : Shape{
 public:
     Vector2f center = Vector2f();
     float radius;
@@ -117,15 +135,12 @@ void Arc::draw(){
     glEnd();
 }
 
-class Particle{
+class Particle : Arc{
 private:
-    Arc arc;
     Vector2f *velocity = new Vector2f();
 public:
-    Particle(Arc);
-    void draw();
+    void traverse();
 };
-Particle::Particle(Arc a) : arc(a) {}
 
 ///////////////////////////////////////////////////////////
 // Begin psedu-class (render)
@@ -159,26 +174,27 @@ Triangle tris[2500];
 void main_render(){
     radius += frame_manager->delta_time();
     
-    arc->set(Vector2f(), 1.0+radius, 0, 360, GL_POLYGON ,Vector4f(1,0,1,0.5f));
+    arc->set(Vector2f(), radius, 0, 360, GL_POLYGON ,Vector4f(1,0,1,0.5f));
     arc->draw();
     
-//    int NUM_ARCS = 250;
-//    Arc arcs[NUM_ARCS];
-//    for(int i=0; i<NUM_ARCS; i++){
-//        float radius = 8 - i;
-//        arcs[i].set(Vector2f(), radius/NUM_ARCS * 20, 0, 360, GL_LINE_STRIP);
-//        arcs[i].draw();
-//    }
+    int NUM_ARCS = 100;
+    int DIST_APART = 10;
+    Arc arcs[NUM_ARCS];
+    for(int i=0; i<NUM_ARCS; i++){
+        float radius = (float)i/DIST_APART;
+        arcs[i].set(Vector2f(), radius, 0, 360, GL_LINE_STRIP, Vector4f(0, 0, 0, 1-(float)i/NUM_ARCS));
+        arcs[i].draw();
+    }
 
-    Triangle* tri = new Triangle();
-    tri->set(Vector2f(-0.5, -0.5), Vector2f(0, 0.5), Vector2f(0.5, -0.5), GL_POLYGON);
-    tri->draw();
+//    Triangle* tri = new Triangle();
+//    tri->set(Vector2f(-0.866, -0.5), Vector2f(0, 1), Vector2f(0.866, -0.5), GL_POLYGON);
+//    tri->drawRainbow();
 //
 //    glColor4f(0, 0, 0, 1);
 //    for(int i=0; i<NUM_TRIS; i++){
 //        float r1 = (rand() % 1000 - 500.0)/50;
 //        float r2 = (rand() % 1000 - 500.0)/50;
-//        tris[i].set(Vector2f(-0.25+r1, -0.25+r2), Vector2f(0+r1, 0.25+r2), Vector2f(0.25+r1, -0.25+r2));
+//        tris[i].set(Vector2f(-0.25+r1, -0.25+r2), Vector2f(0+r1, 0.25+r2), Vector2f(0.25+r1, -0.25+r2), GL_POLYGON);
 //        tris[i].draw();
 //    }
     
