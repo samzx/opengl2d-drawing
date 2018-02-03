@@ -37,22 +37,22 @@ void keyboard (unsigned char key, int x, int y) {
             glutPostRedisplay();
             break;
             
-        case 'a':
+        case 'd':
             tx-=0.1;
             glutPostRedisplay();
             break;
             
-        case 'd':
+        case 'a':
             tx+=0.1;
             glutPostRedisplay();
             break;
             
-        case 's':
+        case 'w':
             ty-=0.1;
             glutPostRedisplay();
             break;
             
-        case 'w':
+        case 's':
             ty+=0.1;
             glutPostRedisplay();
             break;
