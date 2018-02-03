@@ -59,7 +59,7 @@ void keyboard (unsigned char key, int x, int y) {
             
         case 'r':
             init();
-            display();
+//            display();
             break;
         case 27:
             exit(0);

@@ -166,8 +166,6 @@ void Particle::traverse(float delta_time, float drag = 0){
 #define PARTICLE_VICINITY 2
 #define PARTICLE_SPEED 1
 
-
-float radius = 0;
 Particle particles[NUM_PARTICLES];
 FrameManager* frame_manager = new FrameManager();
 
@@ -177,8 +175,8 @@ void init_particles(){
         const float VELOCITY_PRECISION = 100.0f;
         const float ALPHA_PRECISION = 100.0f;
         
-        const float PARTICLE_BOUNDS = 15;
-        const float MAX_VELOCITY = 10.0f;
+        const float PARTICLE_BOUNDS = 15; // 15 | 1 explosion
+        const float MAX_VELOCITY = 50.0f; // 10 | 50 explosion
         const float ALPHA_MIN = 0.25f;
         
         // Random position
@@ -204,6 +202,12 @@ void init_particles(){
 void startRender(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    glLoadIdentity();
+    glTranslatef(0, -2, 0);
+    
+    std::cout<<"YES";
     
     init_particles();
 }
@@ -212,9 +216,6 @@ void startRender(){
 void finish_render(){
     frame_manager->print_fps();
     frame_manager->update();
-    
-    // Swap buffers (show rendered frame)
-    glFlush();
     
     // Re-render to start next frame
     glutPostRedisplay();
@@ -259,16 +260,38 @@ void draw_links(){
 
 void draw_background(){
     Triangle* tri = new Triangle();
-    const int SCALE = 10;//30;
-    Vector2f center = Vector2f(0,-1);
-    tri->set(Vector2f(-0.866 * SCALE + center.x, -0.5 * SCALE + center.y),
-             Vector2f(0 + center.x, 1 * SCALE+ center.y),
-             Vector2f(0.866 * SCALE + center.x, -0.5 * SCALE+ center.y),
+    float scale = 10;//30;
+    Vector2f center = Vector2f(0,0);
+    tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
+             Vector2f(0 + center.x, 1 * scale+ center.y),
+             Vector2f(0.866 * scale + center.x, -0.5 * scale+ center.y),
              GL_POLYGON,
              Vector4f());
+    tri->drawMultiColor(Vector4f(0, 0, 0.0f, 1),
+                        Vector4f(0, 0, 0.2f, 1),
+                        Vector4f(0.2f, 0, 0.2f, 1));
+    
+    //TEMP: use function
+    scale = 7.25;
+    tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
+             Vector2f(0 + center.x, 1 * scale+ center.y),
+             Vector2f(0.866 * scale + center.x, -0.5 * scale+ center.y),
+             GL_POLYGON,
+             Vector4f());
+    tri->drawMultiColor(Vector4f(1, 1, 1, 1),
+                        Vector4f(1, 1, 1, 1),
+                        Vector4f(1, 1, 1, 1));
+    // TEMP: use function
+    scale = 7;
+    tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
+             Vector2f(0 + center.x, 1 * scale+ center.y),
+             Vector2f(0.866 * scale + center.x, -0.5 * scale+ center.y),
+             GL_POLYGON,
+             Vector4f());
+
     tri->drawMultiColor(Vector4f(0.2f, 0, 0.2f, 1),
-                     Vector4f(0, 0, 0.0f, 1),
-                     Vector4f(0, 0, 0.2f, 1));
+                        Vector4f(0, 0, 0.0f, 1),
+                        Vector4f(0, 0, 0.2f, 1));
     delete tri;
 }
 
