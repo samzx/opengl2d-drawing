@@ -8,6 +8,20 @@
 
 #include "render.hpp"
 
+#define NUM_PARTICLES 200
+#define PARTICLE_VICINITY 2
+#define PARTICLE_SPEED 1
+#define PARTICLE_DRAG 1
+#define PARTICLE_SIZE 0.05f
+
+#define TRIANGLE_SCALE 10 //10 fits screen | 45 full screen 600x600
+
+#define PARTICLE_BOUNDS 10.0 //10 | 1 explosion
+#define MAX_VELOCITY 10.0 //10 | 50 explision
+#define ALPHA_MIN 0.25f // Also used for z distance
+
+#define BACKGROUND_SATURATION 0.25f
+
 // Tracks the update loop
 class FrameManager{
 private:
@@ -168,20 +182,6 @@ void Particle::traverse(float delta_time, float drag = 0){
 
 ///////////////////////////////////////////////////////////
 // Begin psedu-class (render)
-
-#define NUM_PARTICLES 200
-#define PARTICLE_VICINITY 2
-#define PARTICLE_SPEED 1
-#define PARTICLE_DRAG 1
-#define PARTICLE_SIZE 0.05f
-
-#define TRIANGLE_SCALE 10 //10 fits screen | 45 full screen 600x600
-
-#define PARTICLE_BOUNDS 10.0 //10 | 1 explosion
-#define MAX_VELOCITY 10.0 //10 | 50 explision
-#define ALPHA_MIN 0.25f // Also used for z distance
-
-#define BACKGROUND_SATURATION 0.25f
 
 Particle particles[NUM_PARTICLES];
 FrameManager* frame_manager;
