@@ -186,10 +186,6 @@ void Particle::traverse(float delta_time, float drag = 0){
 Particle particles[NUM_PARTICLES];
 FrameManager* frame_manager;
 
-#define TREE_SCALE 0.6
-#define TREE_HEIGHT 2
-int b1, b2, b3, b4;
-
 void init_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
         const float ANGLE_PRECISION = 36000.0f;
@@ -215,13 +211,6 @@ void init_particles(){
     }
 }
 
-void init_tree(){
-    b1 = rand()%45;
-    b2 = rand()%45;
-    b3 = rand()%45;
-    b4 = rand()%45;
-}
-
 // Initilisations before render loop
 void start_render(){
     glEnable(GL_BLEND);
@@ -233,7 +222,6 @@ void start_render(){
     
     frame_manager = new FrameManager();
     init_particles();
-    init_tree();
 }
 
 // Tidies up and updates states after one render loop
@@ -315,102 +303,10 @@ void draw_background(){
     delete tri;
 }
 
-void draw_mountains(){
-    
-}
-
-#define TREE_THICKNESS 0.1
-
-void draw_branch(){
-    glColor4f(0, 0, 0, 1);
-    glBegin(GL_POLYGON);
-        glVertex2f(-TREE_THICKNESS, 0);
-        glVertex2f(-TREE_THICKNESS/2, TREE_HEIGHT);
-        glVertex2f(TREE_THICKNESS/2, TREE_HEIGHT);
-        glVertex2f(TREE_THICKNESS, 0);
-    glEnd();
-}
-
-
-void draw_fork(int n){
-    draw_branch();
-    if(n==1){
-        // Draw Leaves
-        return;
-    }
-    glPushMatrix();
-        glTranslatef(0, TREE_HEIGHT, 0);
-    
-        glPushMatrix();
-            glRotatef(-30, 0, 0, 1);
-            glScalef(TREE_SCALE, TREE_SCALE, TREE_SCALE);
-            draw_fork(n-1);
-        glPopMatrix();
-    
-        glPushMatrix();
-            glRotatef(-10, 0, 0, 1);
-            glScalef(TREE_SCALE, TREE_SCALE, TREE_SCALE);
-            draw_fork(n-1);
-        glPopMatrix();
-    
-        glPushMatrix();
-            glRotatef(10, 0, 0, 1);
-            glScalef(TREE_SCALE, TREE_SCALE, TREE_SCALE);
-            draw_fork(n-1);
-        glPopMatrix();
-    
-        glPushMatrix();
-            glRotatef(30, 0, 0, 1);
-            glScalef(TREE_SCALE, TREE_SCALE, TREE_SCALE);
-            draw_fork(n-1);
-        glPopMatrix();
-    
-    glPopMatrix();
-}
-
-void draw_forest(){
-    glPushMatrix();
-    glTranslatef(8, -8, 0);
-    draw_fork(5);
-    for(int i=0; i<8*2; i++){
-        glTranslatef(-1, 0, 0);
-        draw_fork(5);
-    }
-    glPopMatrix();
-}
-
-void draw_foreground(){
-    draw_mountains();
-    draw_forest();
-}
-void draw_moon(){
-    const float MOON_SIZE = 0.5f;
-    const Vector2f MOON_POSITION = Vector2f(5, 7);
-    
-    // Main moon
-    Arc *arc = new Arc();
-    arc->set(MOON_POSITION, MOON_SIZE, 0, 360, GL_POLYGON ,Vector4f(1,1,1,1));
-    arc->draw();
-    delete arc;
-    
-    // Moon lighting
-    int NUM_ARCS = 10;
-    float DIST_APART = 0.25f;
-    Arc arcs[NUM_ARCS];
-    for(int i=0; i<NUM_ARCS; i++){
-        float radius = (float)i * DIST_APART;
-        float alpha = (1-(float)(i-1)/NUM_ARCS);
-        arcs[i].set(MOON_POSITION, MOON_SIZE + radius*radius, 0, 360, GL_POLYGON, Vector4f(1, 1, 1, alpha * alpha * 0.5f));
-        arcs[i].draw();
-    }
-}
-
 void main_render(){
     draw_background();
     draw_links();
     draw_particles();
-//    draw_moon();
-//    draw_foreground();
 }
 
 void render(){
