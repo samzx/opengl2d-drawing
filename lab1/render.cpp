@@ -30,6 +30,9 @@ void FrameManager::update(){
     last_time = time;
 }
 void FrameManager::print_fps(){
+    if((glutGet(GLUT_ELAPSED_TIME) - last_time) == 0){
+        return;
+    }
     int fps = ONE_SECOND/((glutGet(GLUT_ELAPSED_TIME) - last_time));
     // Clear screen
     for(int i=0; i<50; i++) std::cout<<"\n";
@@ -169,19 +172,29 @@ void Particle::traverse(float delta_time, float drag = 0){
 #define NUM_PARTICLES 200
 #define PARTICLE_VICINITY 2
 #define PARTICLE_SPEED 1
+#define PARTICLE_DRAG 1
+#define PARTICLE_SIZE 0.05f
+
+#define TRIANGLE_SCALE 10 //10 fits screen | 45 full screen 600x600
+
+#define PARTICLE_BOUNDS 10.0 //10 | 1 explosion
+#define MAX_VELOCITY 10.0 //10 | 50 explision
+#define ALPHA_MIN 0.25f // Also used for z distance
+
+#define BACKGROUND_SATURATION 0.25f
 
 Particle particles[NUM_PARTICLES];
 FrameManager* frame_manager;
+
+#define TREE_SCALE 0.6
+#define TREE_HEIGHT 2
+int b1, b2, b3, b4;
 
 void init_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
         const float ANGLE_PRECISION = 36000.0f;
         const float VELOCITY_PRECISION = 10000.0f;
         const float ALPHA_PRECISION = 100.0f;
-        
-        const float PARTICLE_BOUNDS = 1.0; // 15 | 1 explosion
-        const float MAX_VELOCITY = 50.0f; // 10 | 50 explosion
-        const float ALPHA_MIN = 0.25f;
         
         // Random position
         float angle = (rand()%(int)ANGLE_PRECISION) / ANGLE_PRECISION * 2 * M_PI;
@@ -197,9 +210,16 @@ void init_particles(){
         r5 = r5 > 1 ? 1 : r5;
         
         // Set states
-        particles[i].set(Vector2f(r1, r2), 0.1f * r5, 0, 360, GL_POLYGON, Vector4f(1,1,1,r5));
+        particles[i].set(Vector2f(r1, r2), PARTICLE_SIZE * r5, 0, 360, GL_POLYGON, Vector4f(1,1,1,r5));
         particles[i].set_velocity(Vector2f(PARTICLE_SPEED * r3 * r5, PARTICLE_SPEED * r4));
     }
+}
+
+void init_tree(){
+    b1 = rand()%45;
+    b2 = rand()%45;
+    b3 = rand()%45;
+    b4 = rand()%45;
 }
 
 // Initilisations before render loop
@@ -213,6 +233,7 @@ void start_render(){
     
     frame_manager = new FrameManager();
     init_particles();
+    init_tree();
 }
 
 // Tidies up and updates states after one render loop
@@ -227,7 +248,7 @@ void finish_render(){
 void draw_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
         particles[i].draw();
-        particles[i].traverse(frame_manager->delta_time, 3.0f);
+        particles[i].traverse(frame_manager->delta_time, PARTICLE_DRAG);
     }
 }
 
@@ -261,39 +282,33 @@ void draw_links(){
     }
 }
 
+void set_triangle(Triangle *tri, float scale, GLenum type){
+    float VERT_ANGLE = (M_PI/6.0);
+    tri->set(Vector2f(-cos(VERT_ANGLE) * scale , -sin(VERT_ANGLE) * scale),
+             Vector2f(0, 1 * scale),
+             Vector2f(cos(VERT_ANGLE) * scale, -sin(VERT_ANGLE) * scale),
+             type,
+             Vector4f());
+}
+
 void draw_background(){
     Triangle* tri = new Triangle();
-    float scale = 10;//30;
-    Vector2f center = Vector2f(0,0);
-    tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
-             Vector2f(0 + center.x, 1 * scale+ center.y),
-             Vector2f(0.866 * scale + center.x, -0.5 * scale+ center.y),
-             GL_POLYGON,
-             Vector4f());
-    tri->drawMultiColor(Vector4f(0, 0, 0.0f, 1),
-                        Vector4f(0, 0, 0.2f, 1),
-                        Vector4f(0.2f, 0, 0.2f, 1));
-    
-
-    // TEMP: use function
-    scale = 7;
-    tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
-             Vector2f(0 + center.x, 1 * scale+ center.y),
-             Vector2f(0.866 * scale + center.x, -0.5 * scale+ center.y),
-             GL_POLYGON,
-             Vector4f());
-
-    tri->drawMultiColor(Vector4f(0.2f, 0, 0.2f, 1),
+    const float small_to_large_ratio = 0.7f;
+    set_triangle(tri, TRIANGLE_SCALE, GL_POLYGON);
+    tri->drawMultiColor(
+                        Vector4f(0, 0, BACKGROUND_SATURATION, 1),
                         Vector4f(0, 0, 0.0f, 1),
-                        Vector4f(0, 0, 0.2f, 1));
+                        Vector4f(BACKGROUND_SATURATION, 0, BACKGROUND_SATURATION, 1));
     
-    //TEMP: use function
-    scale = 7;
-    tri->set(Vector2f(-0.866 * scale + center.x, -0.5 * scale + center.y),
-             Vector2f(0 + center.x, 1 * scale+ center.y),
-             Vector2f(0.866 * scale + center.x, -0.5 * scale+ center.y),
-             GL_LINE_LOOP,
-             Vector4f());
+
+    // Draw inner triangle
+    set_triangle(tri, TRIANGLE_SCALE * small_to_large_ratio, GL_POLYGON);
+    tri->drawMultiColor(Vector4f(BACKGROUND_SATURATION, 0, BACKGROUND_SATURATION, 1),
+                        Vector4f(0, 0, 0.0f, 1),
+                        Vector4f(0, 0, BACKGROUND_SATURATION, 1));
+    
+    // Draw splitting line
+    set_triangle(tri, TRIANGLE_SCALE * small_to_large_ratio, GL_LINE_LOOP);
     tri->drawMultiColor(Vector4f(1, 1, 1, 1),
                         Vector4f(1, 1, 1, 1),
                         Vector4f(1, 1, 1, 1));
@@ -303,8 +318,65 @@ void draw_background(){
 void draw_mountains(){
     
 }
-void draw_forest(){
+
+#define TREE_THICKNESS 0.1
+
+void draw_branch(){
+    glColor4f(0, 0, 0, 1);
+    glBegin(GL_POLYGON);
+        glVertex2f(-TREE_THICKNESS, 0);
+        glVertex2f(-TREE_THICKNESS/2, TREE_HEIGHT);
+        glVertex2f(TREE_THICKNESS/2, TREE_HEIGHT);
+        glVertex2f(TREE_THICKNESS, 0);
+    glEnd();
+}
+
+
+void draw_fork(int n){
+    draw_branch();
+    if(n==1){
+        // Draw Leaves
+        return;
+    }
+    glPushMatrix();
+        glTranslatef(0, TREE_HEIGHT, 0);
     
+        glPushMatrix();
+            glRotatef(-30, 0, 0, 1);
+            glScalef(TREE_SCALE, TREE_SCALE, TREE_SCALE);
+            draw_fork(n-1);
+        glPopMatrix();
+    
+        glPushMatrix();
+            glRotatef(-10, 0, 0, 1);
+            glScalef(TREE_SCALE, TREE_SCALE, TREE_SCALE);
+            draw_fork(n-1);
+        glPopMatrix();
+    
+        glPushMatrix();
+            glRotatef(10, 0, 0, 1);
+            glScalef(TREE_SCALE, TREE_SCALE, TREE_SCALE);
+            draw_fork(n-1);
+        glPopMatrix();
+    
+        glPushMatrix();
+            glRotatef(30, 0, 0, 1);
+            glScalef(TREE_SCALE, TREE_SCALE, TREE_SCALE);
+            draw_fork(n-1);
+        glPopMatrix();
+    
+    glPopMatrix();
+}
+
+void draw_forest(){
+    glPushMatrix();
+    glTranslatef(8, -8, 0);
+    draw_fork(5);
+    for(int i=0; i<8*2; i++){
+        glTranslatef(-1, 0, 0);
+        draw_fork(5);
+    }
+    glPopMatrix();
 }
 
 void draw_foreground(){
@@ -313,7 +385,7 @@ void draw_foreground(){
 }
 void draw_moon(){
     const float MOON_SIZE = 0.5f;
-    const Vector2f MOON_POSITION = Vector2f(0,0);
+    const Vector2f MOON_POSITION = Vector2f(5, 7);
     
     // Main moon
     Arc *arc = new Arc();
@@ -337,8 +409,8 @@ void main_render(){
     draw_background();
     draw_links();
     draw_particles();
-    draw_foreground();
 //    draw_moon();
+//    draw_foreground();
 }
 
 void render(){
