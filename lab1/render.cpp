@@ -12,12 +12,12 @@
 #define PARTICLE_VICINITY 2
 #define PARTICLE_SPEED 1
 #define PARTICLE_DRAG 1
-#define PARTICLE_SIZE 0.05f
+#define PARTICLE_SIZE 0.05f // MODE1: 0.05f | MODE2: 0.1f
 
-#define TRIANGLE_SCALE 10 //10 fits screen | 45 full screen 600x600
+#define TRIANGLE_SCALE 10 // MODE1: 10 | MODE2: 45
 
-#define PARTICLE_BOUNDS 10.0 //10 | 1 explosion
-#define MAX_VELOCITY 10.0 //10 | 50 explision
+#define PARTICLE_BOUNDS 10.0 // MODE1: 10.0f | MODE2: 15.0f | MODE3-explosion: 1
+#define MAX_VELOCITY 10.0 // MODE1: 10.0f | MODE2: 1.0f | MODE3-explosion: 50.0f
 #define ALPHA_MIN 0.25f // Also used for z distance
 
 #define BACKGROUND_SATURATION 0.25f
