@@ -2,5 +2,9 @@
 2d drawing in openGL in c++
 
 ## Demo:
-![Example 1](https://thumbs.gfycat.com/RemarkableLikelyAlbertosaurus-size_restricted.gif)
-![Example 2](https://thumbs.gfycat.com/EnchantingUniformFlyingfish-size_restricted.gif)
+<p align="center">
+  <img src="https://thumbs.gfycat.com/RemarkableLikelyAlbertosaurus-size_restricted.gif" alt="Example 1"/>
+</p>
+<p align="center">
+  <img src="https://thumbs.gfycat.com/EnchantingUniformFlyingfish-size_restricted.gif" alt="Example 2"/>
+</p>
