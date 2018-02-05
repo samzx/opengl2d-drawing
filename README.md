@@ -2,4 +2,5 @@
 2d drawing in openGL in c++
 
 ## Demo:
-![example](https://thumbs.gfycat.com/RemarkableLikelyAlbertosaurus-size_restricted.gif)
+![Example 1](https://thumbs.gfycat.com/RemarkableLikelyAlbertosaurus-size_restricted.gif)
+![Example 2](https://thumbs.gfycat.com/EnchantingUniformFlyingfish-size_restricted.gif)
