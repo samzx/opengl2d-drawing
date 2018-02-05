@@ -11,13 +11,13 @@
 #define NUM_PARTICLES 200
 #define PARTICLE_VICINITY 2
 #define PARTICLE_SPEED 1
-#define PARTICLE_DRAG 1
+#define PARTICLE_DRAG 2 // MODE1/2: 1 | MODE3-explosion: 2
 #define PARTICLE_SIZE 0.05f // MODE1: 0.05f | MODE2: 0.1f
 
 #define TRIANGLE_SCALE 10 // MODE1: 10 | MODE2: 45
 
-#define PARTICLE_BOUNDS 10.0 // MODE1: 10.0f | MODE2: 15.0f | MODE3-explosion: 1
-#define MAX_VELOCITY 10.0 // MODE1: 10.0f | MODE2: 1.0f | MODE3-explosion: 50.0f
+#define PARTICLE_BOUNDS 1.0 // MODE1: 10.0f | MODE2: 15.0f | MODE3-explosion: 1
+#define MAX_VELOCITY 35.0 // MODE1: 10.0f | MODE2: 1.0f | MODE3-explosion: 35.0f
 #define ALPHA_MIN 0.25f // Also used for z distance
 
 #define BACKGROUND_SATURATION 0.25f
@@ -282,13 +282,14 @@ void set_triangle(Triangle *tri, float scale, GLenum type){
 void draw_background(){
     Triangle* tri = new Triangle();
     const float small_to_large_ratio = 0.7f;
+    
+    // Draw outer triangle
     set_triangle(tri, TRIANGLE_SCALE, GL_POLYGON);
     tri->drawMultiColor(
                         Vector4f(0, 0, BACKGROUND_SATURATION, 1),
                         Vector4f(0, 0, 0.0f, 1),
                         Vector4f(BACKGROUND_SATURATION, 0, BACKGROUND_SATURATION, 1));
     
-
     // Draw inner triangle
     set_triangle(tri, TRIANGLE_SCALE * small_to_large_ratio, GL_POLYGON);
     tri->drawMultiColor(Vector4f(BACKGROUND_SATURATION, 0, BACKGROUND_SATURATION, 1),
