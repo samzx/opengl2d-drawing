@@ -8,16 +8,18 @@
 
 #include "render.hpp"
 
+#define Y_OFFSET -2 // -2 for Triangle | 0 for full screen
+
 #define NUM_PARTICLES 200
 #define PARTICLE_VICINITY 2
 #define PARTICLE_SPEED 1
-#define PARTICLE_DRAG 2 // MODE1/2: 1 | MODE3-explosion: 2
-#define PARTICLE_SIZE 0.05f // MODE1: 0.05f | MODE2: 0.1f
+#define PARTICLE_DRAG 5 // MODE1: 0 | MODE2-explosion: 5
+#define PARTICLE_SIZE 0.05f // MODE1: 0.1f | MODE2: 0.05f
 
-#define TRIANGLE_SCALE 10 // MODE1: 10 | MODE2: 45
+#define TRIANGLE_SCALE 10 // MODE1: 45 | MODE2: 10
 
-#define PARTICLE_BOUNDS 1.0 // MODE1: 10.0f | MODE2: 15.0f | MODE3-explosion: 1
-#define MAX_VELOCITY 35.0 // MODE1: 10.0f | MODE2: 1.0f | MODE3-explosion: 35.0f
+#define PARTICLE_BOUNDS 1.0 // MODE1: 15.0f | MODE2: 1.0f
+#define MAX_VELOCITY 35.0 // MODE1: 1.0f | MODE2: 35.0f
 #define ALPHA_MIN 0.25f // Also used for z distance
 
 #define BACKGROUND_SATURATION 0.25f
@@ -180,10 +182,13 @@ void Particle::traverse(float delta_time, float drag = 0){
     velocity = Vector2f(velocity.x * multiplier, velocity.y * multiplier);
 }
 
-///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 // Begin psedu-class (render)
+////////////////////////////////////////////////////////////////////////////
 
 Particle particles[NUM_PARTICLES];
+float rand_nums[NUM_PARTICLES];
 FrameManager* frame_manager;
 
 void init_particles(){
@@ -196,6 +201,7 @@ void init_particles(){
         float angle = (rand()%(int)ANGLE_PRECISION) / ANGLE_PRECISION * 2 * M_PI;
         float r1 = rand()%(int)PARTICLE_BOUNDS * cos(angle);
         float r2 = rand()%(int)PARTICLE_BOUNDS * sin(angle);
+        
         // Random velocities
         angle = (rand()%(int)ANGLE_PRECISION) / ANGLE_PRECISION * 2 * M_PI;
         float r3 = rand()%(int)VELOCITY_PRECISION / VELOCITY_PRECISION * MAX_VELOCITY * cos(angle);
@@ -211,6 +217,16 @@ void init_particles(){
     }
 }
 
+// NOTE: Can also add drag property to class directly and init above
+void generate_random_numbers(){
+    const float PRECISION = 100;
+    const float LOWER = 0.25;
+    const float UPPER = 0.75;
+    for(int i=0; i< NUM_PARTICLES; i++){
+        rand_nums[i] = rand()%(int)PRECISION/PRECISION * (UPPER - LOWER) + LOWER;
+    }
+}
+
 // Initilisations before render loop
 void start_render(){
     glEnable(GL_BLEND);
@@ -218,8 +234,8 @@ void start_render(){
     glClear(GL_COLOR_BUFFER_BIT);
     
     glLoadIdentity();
-    glTranslatef(0, -2, 0);
-    
+    glTranslatef(0, Y_OFFSET, 0);
+    generate_random_numbers();
     frame_manager = new FrameManager();
     init_particles();
 }
@@ -236,7 +252,7 @@ void finish_render(){
 void draw_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
         particles[i].draw();
-        particles[i].traverse(frame_manager->delta_time, PARTICLE_DRAG);
+        particles[i].traverse(frame_manager->delta_time, rand_nums[i] * PARTICLE_DRAG);
     }
 }
 
