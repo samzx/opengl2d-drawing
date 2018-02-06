@@ -18,9 +18,9 @@
 
 #define TRIANGLE_SCALE 10 // MODE1: 45 | MODE2: 10
 
-#define PARTICLE_BOUNDS 1.0 // MODE1: 15.0f | MODE2: 1.0f
+#define PARTICLE_BOUNDS 0.01 // MODE1: 15.0f | MODE2: 0.01f
 #define MAX_VELOCITY 35.0 // MODE1: 1.0f | MODE2: 35.0f
-#define ALPHA_MIN 0.25f // Also used for z distance
+#define ALPHA_MIN 0.5f // Also used for z distance
 
 #define BACKGROUND_SATURATION 0.25f
 
@@ -166,18 +166,19 @@ void Arc::draw(){
 class Particle : public Arc{
 private:
     Vector2f velocity = Vector2f();
+    float drag;
 public:
-    void set_velocity(Vector2f velocity);
-    void traverse(float, float);
+    void set_particle(Vector2f, float);
+    void traverse(float);
 };
-void Particle::set_velocity(Vector2f velocity){
+void Particle::set_particle(Vector2f velocity, float drag){
     this->velocity = velocity;
+    this->drag = drag;
 }
-void Particle::traverse(float delta_time, float drag = 0){
+void Particle::traverse(float delta_time){
     float deltaX = velocity.x * delta_time;
     float deltaY = velocity.y * delta_time;
     center = Vector2f(center.x + deltaX, center.y + deltaY);
-    // Drag
     float multiplier = 1.0 - drag * delta_time;
     velocity = Vector2f(velocity.x * multiplier, velocity.y * multiplier);
 }
@@ -191,39 +192,43 @@ Particle particles[NUM_PARTICLES];
 float rand_nums[NUM_PARTICLES];
 FrameManager* frame_manager;
 
+float generate_random_number(float precision = 100, float lower = 0, float upper = 1){
+    return rand()%(int)precision/precision * (upper - lower) + lower;
+}
+
 void init_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
         const float ANGLE_PRECISION = 36000.0f;
         const float VELOCITY_PRECISION = 10000.0f;
+        const float POSITION_PRECISION = 100.0f;
         const float ALPHA_PRECISION = 100.0f;
+        const float DRAG_PRECISION = 100.0f;
+        
+        const float DRAG_LOWER_PERCENT = 0.25f;
+        const float DRAG_UPPER_PERCENT = 0.75f;
+        
+        const float ARC_ANGLE = 360;
         
         // Random position
         float angle = (rand()%(int)ANGLE_PRECISION) / ANGLE_PRECISION * 2 * M_PI;
-        float r1 = rand()%(int)PARTICLE_BOUNDS * cos(angle);
-        float r2 = rand()%(int)PARTICLE_BOUNDS * sin(angle);
+        float posX = generate_random_number(POSITION_PRECISION, 0, PARTICLE_BOUNDS) * cos(angle);
+        float posY = generate_random_number(POSITION_PRECISION, 0, PARTICLE_BOUNDS) * sin(angle);
         
         // Random velocities
-        angle = (rand()%(int)ANGLE_PRECISION) / ANGLE_PRECISION * 2 * M_PI;
-        float r3 = rand()%(int)VELOCITY_PRECISION / VELOCITY_PRECISION * MAX_VELOCITY * cos(angle);
-        float r4 = rand()%(int)VELOCITY_PRECISION / VELOCITY_PRECISION * MAX_VELOCITY * sin(angle);
+        angle = generate_random_number(ANGLE_PRECISION, 0, 1) * 2 * M_PI;
+        float velocityX = generate_random_number(VELOCITY_PRECISION, 0, MAX_VELOCITY) * cos(angle);
+        float velocityY = generate_random_number(VELOCITY_PRECISION, 0, MAX_VELOCITY) * sin(angle);
         
-        // Random alpha
-        float r5 = (rand() % (int)ALPHA_PRECISION)/ALPHA_PRECISION + ALPHA_MIN;
-        r5 = r5 > 1 ? 1 : r5;
+        // Random alpha with boost
+        float alpha = generate_random_number(ALPHA_PRECISION, 0, 1) + ALPHA_MIN;
+        alpha = alpha > 1 ? 1 : alpha;
+        
+        // Random drag
+        float drag = generate_random_number(DRAG_PRECISION, DRAG_LOWER_PERCENT, DRAG_UPPER_PERCENT) * PARTICLE_DRAG;
         
         // Set states
-        particles[i].set(Vector2f(r1, r2), PARTICLE_SIZE * r5, 0, 360, GL_POLYGON, Vector4f(1,1,1,r5));
-        particles[i].set_velocity(Vector2f(PARTICLE_SPEED * r3 * r5, PARTICLE_SPEED * r4));
-    }
-}
-
-// NOTE: Can also add drag property to class directly and init above
-void generate_random_numbers(){
-    const float PRECISION = 100;
-    const float LOWER = 0.25;
-    const float UPPER = 0.75;
-    for(int i=0; i< NUM_PARTICLES; i++){
-        rand_nums[i] = rand()%(int)PRECISION/PRECISION * (UPPER - LOWER) + LOWER;
+        particles[i].set(Vector2f(posX, posY), PARTICLE_SIZE * alpha, 0, ARC_ANGLE, GL_POLYGON, Vector4f(1,1,1,alpha));
+        particles[i].set_particle(Vector2f(PARTICLE_SPEED * velocityX * alpha, PARTICLE_SPEED * velocityY * alpha), drag);
     }
 }
 
@@ -235,7 +240,7 @@ void start_render(){
     
     glLoadIdentity();
     glTranslatef(0, Y_OFFSET, 0);
-    generate_random_numbers();
+    generate_random_number();
     frame_manager = new FrameManager();
     init_particles();
 }
@@ -252,7 +257,7 @@ void finish_render(){
 void draw_particles(){
     for(int i=0; i<NUM_PARTICLES; i++){
         particles[i].draw();
-        particles[i].traverse(frame_manager->delta_time, rand_nums[i] * PARTICLE_DRAG);
+        particles[i].traverse(frame_manager->delta_time);
     }
 }
 
