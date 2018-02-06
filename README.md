@@ -3,8 +3,8 @@
 
 ## Demo:
 <p align="center">
-  <img src="https://thumbs.gfycat.com/RemarkableLikelyAlbertosaurus-size_restricted.gif" alt="Example 1"/>
+  <img src="https://thumbs.gfycat.com/EnormousBlackEyra-size_restricted.gif" alt="Example 2"/>
 </p>
 <p align="center">
-  <img src="https://thumbs.gfycat.com/EnchantingUniformFlyingfish-size_restricted.gif" alt="Example 2"/>
+  <img src="https://thumbs.gfycat.com/RemarkableLikelyAlbertosaurus-size_restricted.gif" alt="Example 1"/>
 </p>
